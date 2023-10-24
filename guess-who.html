@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>GUESS WHO 👀</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <h1>GUESS WHO 👀</h1>
+		
+		<div class="row justify-content-center">
+            <div class="col-md-2"> <!-- Centered row with columns -->
+				<div id="randomTileContainer"></div>
+			</div>
+			 <div class="col-md-2"> 
+				<p>Total People: <span id="totalTiles">0</span></p>
+				<p>People Remaining: <span id="notToggled">0</span></p>
+			</div>
+		</div>
+		
+		<hr />
+		
+        <div class="row" id="tileContainer"></div>
+    </div>
+
+    <!-- Include jQuery and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Define variables for URL and selectors
+        var contentUrl = 'https://worldrelief.org/leadership/'; //'https://bluemodus.com/about-us',
+        var imagesAndTitlesSelector = '.fl-builder-content-217 .fl-row';
+        var imageSelector = '.fl-photo-img';
+        var titleSelector = 'h3 strong';
+
+        $(document).ready(function () {
+            // Function to create a tile
+            function createTile(image, title) {
+                return '<div class="col-md-2 mb-4">' + // Use col-md-2 for 6 tiles in a row
+                    '<div class="card bg-secondary">' +
+                    '<img src="' + image + '" class="card-img-top" alt="...">' +
+                    '<div class="card-body">' +
+                    '<h5 class="card-title">' + title + '</h5>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+            }
+			
+			function createRandomTile(image, title) {
+                return '<div class="col-md-12">' + // Use col-md-2 for 6 tiles in a row
+                    '<div class="card bg-warning">' +
+                    '<img src="' + image + '" class="card-img-top" alt="...">' +
+                    '<div class="card-body">' +
+                    '<h5 class="card-title">' + title + '</h5>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+            }
+
+            // Function to fetch content from a URL
+            function fetchContent() {
+                $.ajax({
+                    url: contentUrl,
+                    method: 'GET',
+                    success: function (data) {
+                        // Parse the content and select images and titles
+                        var imagesAndTitles = $(data).find(imagesAndTitlesSelector);
+
+                        // Display one random tile at the top
+                        var randomIndex = Math.floor(Math.random() * imagesAndTitles.length);
+                        var randomImage = $(imagesAndTitles[randomIndex]).find(imageSelector).attr('src');
+                        var randomTitle = $(imagesAndTitles[randomIndex]).find(titleSelector).text();
+                        var randomTile = createRandomTile(randomImage, randomTitle);
+                        $('#randomTileContainer').html(randomTile);
+
+						var count = 0;
+
+                        // Display the rest of the images and titles as tiles
+                        imagesAndTitles.each(function (index) {
+                            var image = $(this).find(imageSelector).attr('src');
+                            var title = $(this).find(titleSelector).text();
+
+                            // Check if image and title are both available before adding the tile
+                            if (image && title) {
+                                var tile = createTile(image, title);
+                                $('#tileContainer').append(tile);
+								
+								count++;
+                            }
+                        });
+
+                        // Update the total number of tiles
+                        $('#totalTiles').text(count);
+						updateNotToggledCount();
+
+                        // Add a click event to toggle the background color
+                        $('.card').click(function () {
+                            $(this).toggleClass('bg-danger'); // Toggle to green
+                            updateNotToggledCount();
+                        });
+
+                        // Function to update the count of untoggled tiles
+                        function updateNotToggledCount() {
+                            var notToggledCount = $('#tileContainer .card:not(.bg-success)').length;
+                            $('#notToggled').text(notToggledCount);
+                        }
+                    },
+                    error: function () {
+                        console.log('Error fetching content from the URL.');
+                    }
+                });
+            }
+
+            // Call the fetchContent function to populate the tiles
+            fetchContent();
+        });
+    </script>
+</body>
+</html>
